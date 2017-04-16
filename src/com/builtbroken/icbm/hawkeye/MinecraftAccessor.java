@@ -40,6 +40,7 @@ public class MinecraftAccessor
 		}
 		return null;
 	}
+
 	/** Gets the world provider from the world using reflection */
 	public static WorldProvider getProvider(World world)
 	{
@@ -157,6 +158,22 @@ public class MinecraftAccessor
 				if (m != null)
 					return (String) m.invoke(info);
 			}
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/** Gets the WorldName from the world using reflection */
+	public static String getEntityName(Entity entity)
+	{
+		try
+		{
+			Method m = ReflectionHelper.getMethodWithAlt(entity.getClass(), "getCommandSenderName", "func_70005_c_");
+			if (m != null)
+				return (String) m.invoke(entity);
 		}
 		catch (Exception e)
 		{

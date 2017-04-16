@@ -65,9 +65,9 @@ public class PluginICBM extends JavaPlugin {
 		return instance;
 	}
 	
-	public static void onEvent(World world, double x, double y, double z, String player, String exName)
+	public static void onEvent(World world, double x, double y, double z, String name, String player, String exName)
 	{
-		HawkEyeAPI.addCustomEntry(instance(), "blast", player, new Location(world, x, y, z), exName);
+		HawkEyeAPI.addCustomEntry(instance(), "blast" + name, player, new Location(world, x, y, z), exName);
 	}
 }
 

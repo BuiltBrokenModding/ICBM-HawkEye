@@ -1,7 +1,12 @@
 package com.builtbroken.icbm.hawkeye;
 
+import icbm.explosion.entities.EntityExplosion;
+import icbm.explosion.entities.EntityMissile;
+import icbm.explosion.explosive.blast.Blast;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.List;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -16,8 +21,11 @@ import net.minecraftforge.event.ListenerList;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
+import universalelectricity.api.vector.Vector3;
 import calclavia.api.icbm.explosion.ExplosionEvent;
+import calclavia.api.icbm.explosion.ExplosionEvent.ExplosionConstructionEvent;
 import calclavia.api.icbm.explosion.ExplosionEvent.PreExplosionEvent;
+import calclavia.api.icbm.explosion.IExplosion;
 
 public class ForgeEventHandler implements IEventListener
 {
@@ -26,86 +34,126 @@ public class ForgeEventHandler implements IEventListener
 	{
 		try
 		{
-			if(paramEvent instanceof ExplosionEvent)
+			if (paramEvent instanceof ExplosionEvent)
 			{
-				System.out.println("Received pre-explosion event");
-				preExplosion((ExplosionEvent)paramEvent);
-			}		
+				preExplosion((ExplosionEvent) paramEvent);
+			}
 		}
-		catch(Throwable t)
+		catch (Throwable t)
 		{
 			System.out.println("Unexpected error handling Event");
 			t.printStackTrace();
 		}
 	}
-	
+
 	public static void load() throws Exception
-	{  		
-  		//Get event bus
+	{
+		// Get event bus
 		Field field = MinecraftForge.class.getDeclaredField("EVENT_BUS");
 		field.setAccessible(true);
 		EventBus bus = (EventBus) field.get(null);
-		
-		//Get bus ID	
+
+		// Get bus ID
 		field = bus.getClass().getDeclaredField("busID");
 		field.setAccessible(true);
-		int id = field.getInt(bus);	
-		
-		//Get listeners
+		int id = field.getInt(bus);
+
+		// Get listeners
 		field = Event.class.getDeclaredField("listeners");
-		field.setAccessible(true);		
+		field.setAccessible(true);
 		ListenerList list = (ListenerList) field.get(null);
-		
-		//Register event listener
+
+		// Register event listener
 		list.register(id, EventPriority.NORMAL, new ForgeEventHandler());
-	}	
+	}
 
-
-	public void preExplosion(ExplosionEvent event) 
-	{		
-		if(event instanceof PreExplosionEvent)
+	public void preExplosion(ExplosionEvent event)
+	{
+		System.out.println("Received explosion event: " + event);
+		System.out.println("\tEx: " + event.iExplosion);
+		System.out.println("\tExplosion: " + event.explosion);
+		if (event instanceof ExplosionConstructionEvent)
 		{
-			Explosion ex = event.explosion;
-			if(ex != null)
-			{		
-				Entity entity = MinecraftAccessor.getExploder(ex);				
-				if(entity instanceof EntityPlayer)
-				{					
-					int dim = MinecraftAccessor.getDimID(event.world);
-					String dimName = MinecraftAccessor.getDimName(event.world);
-					String worldName = MinecraftAccessor.getWorldName(event.world);
+			IExplosion ex = event.iExplosion;
+			if (ex instanceof Blast)
+			{
+				Blast blast = (Blast) ex;
+				Entity entity = MinecraftAccessor.getExploder(blast);
+				System.out.println("Trigger Man: " + entity);
+				int dim = MinecraftAccessor.getDimID(event.world);
+				String dimName = MinecraftAccessor.getDimName(event.world);
+				String worldName = MinecraftAccessor.getWorldName(event.world);
 
-					// First try getting world by dim id
-					World world = Bukkit.getWorld("DIM" + dim);
+				// First try getting world by dim id
+				World world = Bukkit.getWorld("DIM" + dim);
+				if (world == null)
+				{
+					// Then try with dimName
+					world = Bukkit.getWorld(dimName);
 					if (world == null)
 					{
-						// Then try with dimName
-						world = Bukkit.getWorld(dimName);
-						if (world == null)
-						{
-							// IF all fails which it normally does for bukkit world try with the worldName
-							world = Bukkit.getWorld(worldName);
-						}
+						// IF all fails which it normally does for bukkit world try with the
+						// worldName
+						world = Bukkit.getWorld(worldName);
 					}
-					
+				}
+				
+				String name = entity != null ? MinecraftAccessor.getEntityName(entity) : "unknown";
+				if(entity instanceof EntityExplosion)
+				{
+					EntityExplosion exEntity = (EntityExplosion) entity;
+					name = "unknown";
+				}
+				
+				if(entity instanceof EntityMissile)
+				{
+					EntityMissile missile = (EntityMissile) entity;
+					name = "unknown";
+				}
+
+				try
+				{
+					PluginICBM.onEvent(world, event.x, event.y, event.z, "Trigger", name, ex.toString());
+					System.out.println("Fired explosion event");
+				}
+				catch (Exception e)
+				{
+					System.out.println("Failed to invoke event method");
+					e.printStackTrace();
+				}
+				List<Vector3> list = null;
+				try
+				{
+					Field field;
 					try
 					{
-						Method method = PluginICBM.class.getDeclaredMethod("onEvent", null);
-						method.invoke(null, world, event.x, event.y, event.z, entity.getCommandSenderName(), event.iExplosion.toString());
-						System.out.println("Fired explosion event");
+						field = Blast.class.getField("blownBlocks");
 					}
 					catch(Exception e)
 					{
-						System.out.println("Failed to invoke event method");
-						e.printStackTrace();
+						field = Blast.class.getDeclaredField("blownBlocks");
 					}
+					field.setAccessible(true);
+					list = (List<Vector3>) field.get(blast);
 					
-					for(Object object : ex.affectedBlockPositions)
+					for (Vector3 vec : list)
 					{
-						System.out.println(object);
-					}					
+						try
+						{
+							PluginICBM.onEvent(world, vec.x, vec.y, vec.z, "BlockBreak", name, ex.toString());
+							System.out.println(vec);
+						}
+						catch (Exception e)
+						{
+							System.out.println("Failed to invoke event method");
+							e.printStackTrace();
+						}
+					}
+				}
+				catch (Exception e)
+				{
 				}
 			}
-		}		
+		}
 	}
 }
