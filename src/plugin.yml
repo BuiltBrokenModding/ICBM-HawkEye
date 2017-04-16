@@ -1,0 +1,6 @@
+name: HEICBM
+version: "0.0.1"
+description: Addon for HawkEye to support ICBM
+main: com.builtbroken.icbm.hawkeye.PluginICBM
+softdepend: [ HawkEye ]
+authors: [ DarkGuardsman ]
