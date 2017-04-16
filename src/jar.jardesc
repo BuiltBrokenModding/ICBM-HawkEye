@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="WINDOWS-1252" standalone="no"?>
 <jardesc>
-    <jar path="F:/github/1.6/bukkit 45/plugins/HawkEye.jar"/>
-    <options buildIfNeeded="true" compress="false" descriptionLocation="/ICBM 1.6 Hawkeye/src/jar.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
+    <jar path="F:/github/1.6/bukkit 45/plugins/HawkEye-ICBM.jar"/>
+    <options buildIfNeeded="true" compress="false" descriptionLocation="/ICBM-Hawkeye/code/jar.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="true" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
     <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
     <selectedProjects/>
     <manifest generateManifest="true" manifestLocation="" manifestVersion="1.0" reuseManifest="false" saveManifest="false" usesManifest="true">
@@ -11,8 +11,9 @@
         </sealing>
     </manifest>
     <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
-        <file path="/ICBM 1.6 Hawkeye/.project"/>
-        <javaElement handleIdentifier="=ICBM 1.6 Hawkeye/src"/>
-        <file path="/ICBM 1.6 Hawkeye/.classpath"/>
+        <file path="/ICBM-Hawkeye/.project"/>
+        <javaElement handleIdentifier="=ICBM-Hawkeye/code"/>
+        <file path="/ICBM-Hawkeye/.classpath"/>
+        <folder path="/ICBM-Hawkeye/src"/>
     </selectedElements>
 </jardesc>

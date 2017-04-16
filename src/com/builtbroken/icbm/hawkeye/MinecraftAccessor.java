@@ -3,6 +3,8 @@ package com.builtbroken.icbm.hawkeye;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
+import net.minecraft.entity.Entity;
+import net.minecraft.world.Explosion;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldProvider;
 import net.minecraft.world.storage.WorldInfo;
@@ -13,8 +15,31 @@ import net.minecraft.world.storage.WorldInfo;
  * @author Robert Seifert
  * 
  */
-public class WorldUtility
+public class MinecraftAccessor
 {
+	public static Entity getExploder(Explosion ex)
+	{
+		Field f = null;
+		try
+		{
+			try
+			{
+				f = ex.getClass().getField("exploder");
+			}
+			catch (NoSuchFieldException e1)
+			{
+				f = ex.getClass().getField("field_77283_e");
+
+			}
+			f.setAccessible(true);
+			return (Entity) f.get(ex);
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
 	/** Gets the world provider from the world using reflection */
 	public static WorldProvider getProvider(World world)
 	{
